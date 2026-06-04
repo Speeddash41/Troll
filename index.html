@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Contador de Términos do Relacionamento da Ananda 💔</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #111;
+      color: #fff;
+    }
+
+    h1 {
+      color: #ff4d4d;
+    }
+
+    .box {
+      margin-top: 20px;
+    }
+
+    input {
+      padding: 10px;
+      font-size: 16px;
+      width: 80px;
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 5px;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+    }
+
+    .add { background: #28a745; color: white; }
+    .reset { background: #dc3545; color: white; }
+
+    canvas {
+      max-width: 600px;
+      margin: 30px auto;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>💔 Contador de Términos</h1>
+
+  <h2 id="contador">0</h2>
+
+  <div class="box">
+    <input type="number" id="quantidade" placeholder="Qtd" min="1">
+    <button class="add" onclick="adicionar()">Adicionar</button>
+    <button class="reset" onclick="resetar()">Resetar</button>
+  </div>
+
+  <canvas id="grafico"></canvas>
+
+  <!-- som -->
+  <audio id="som">
+    <source src="https://www.myinstants.com/media/sounds/game-over.mp3" type="audio/mpeg">
+  </audio>
+
+<script>
+  let total = parseInt(localStorage.getItem("terminos")) || 0;
+  let historico = JSON.parse(localStorage.getItem("historico")) || [];
+
+  const contador = document.getElementById("contador");
+  const som = document.getElementById("som");
+
+  contador.innerText = total;
+
+  const ctx = document.getElementById("grafico").getContext("2d");
+
+  const grafico = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: historico.map((_, i) => "Término " + (i+1)),
+      datasets: [{
+        label: "Quantidade acumulada",
+        data: historico,
+        borderWidth: 2,
+        fill: false
+      }]
+    }
+  });
+
+  function adicionar() {
+    let qtd = parseInt(document.getElementById("quantidade").value);
+
+    if (!qtd || qtd <= 0) {
+      alert("Coloca um número válido");
+      return;
+    }
+
+    for (let i = 0; i < qtd; i++) {
+      total++;
+      historico.push(total);
+      som.currentTime = 0;
+      som.play();
+    }
+
+    salvar();
+    atualizar();
+  }
+
+  function resetar() {
+    if (confirm("Tem certeza?")) {
+      total = 0;
+      historico = [];
+      salvar();
+      atualizar();
+    }
+  }
+
+  function salvar() {
+    localStorage.setItem("terminos", total);
+    localStorage.setItem("historico", JSON.stringify(historico));
+  }
+
+  function atualizar() {
+    contador.innerText = total;
+
+    grafico.data.labels = historico.map((_, i) => "Término " + (i+1));
+    grafico.data.datasets[0].data = historico;
+    grafico.update();
+  }
+</script>
+
+</body>
+</html>

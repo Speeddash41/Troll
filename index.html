@@ -2,8 +2,9 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Contador de Términos do Relacionamento da Ananda 💔</title>
+  <title>Contador de Términos 💔</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
     body {
       font-family: Arial;
@@ -12,64 +13,65 @@
       color: #fff;
     }
 
-    h1 {
-      color: #ff4d4d;
-    }
-
-    .box {
-      margin-top: 20px;
-    }
-
-    input {
-      padding: 10px;
-      font-size: 16px;
-      width: 80px;
-      text-align: center;
+    h2 {
+      font-size: 50px;
     }
 
     button {
-      padding: 10px 20px;
-      font-size: 16px;
-      margin: 5px;
+      padding: 12px 25px;
+      font-size: 18px;
+      margin: 10px;
       cursor: pointer;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
+    }
+
+    .disabled {
+      opacity: 0.4;
+      pointer-events: none;
     }
 
     .add { background: #28a745; color: white; }
+    .remove { background: #ffc107; color: black; }
     .reset { background: #dc3545; color: white; }
 
-    canvas {
-      max-width: 600px;
-      margin: 30px auto;
+    .admin-btn {
+      background: #444;
+      color: white;
+      font-size: 12px;
+      padding: 5px 10px;
     }
   </style>
 </head>
 <body>
 
   <h1>💔 Contador de Términos do Relacionamento da Ananda</h1>
-
   <h2 id="contador">0</h2>
 
-  <div class="box">
-    <input type="number" id="quantidade" placeholder="Qtd" min="1">
-    <button class="add" onclick="adicionar()">Adicionar</button>
-    <button class="reset" onclick="resetar()">Resetar</button>
+  <div id="controles" class="disabled">
+    <button class="add" onclick="mais()">➕ +1</button>
+    <button class="remove" onclick="menos()">➖ -1</button>
+    <button class="reset" onclick="resetar()">🔄 Reset</button>
   </div>
+
+  <button class="admin-btn" onclick="login()">🔐 Admin</button>
 
   <canvas id="grafico"></canvas>
 
-  <!-- som -->
   <audio id="som">
     <source src="https://www.myinstants.com/media/sounds/game-over.mp3" type="audio/mpeg">
   </audio>
 
 <script>
+  const SENHA = "speeddash10."; // MUDA ISSO AQUI
+
+  let admin = false;
   let total = parseInt(localStorage.getItem("terminos")) || 0;
   let historico = JSON.parse(localStorage.getItem("historico")) || [];
 
   const contador = document.getElementById("contador");
   const som = document.getElementById("som");
+  const controles = document.getElementById("controles");
 
   contador.innerText = total;
 
@@ -80,7 +82,7 @@
     data: {
       labels: historico.map((_, i) => "Término " + (i+1)),
       datasets: [{
-        label: "Quantidade acumulada",
+        label: "Histórico",
         data: historico,
         borderWidth: 2,
         fill: false
@@ -88,27 +90,45 @@
     }
   });
 
-  function adicionar() {
-    let qtd = parseInt(document.getElementById("quantidade").value);
+  function login() {
+    const senha = prompt("Digite a senha:");
 
-    if (!qtd || qtd <= 0) {
-      alert("Coloca um número válido");
-      return;
+    if (senha === SENHA) {
+      admin = true;
+      controles.classList.remove("disabled");
+      alert("Modo admin ativado 😈");
+    } else {
+      alert("Senha errada!");
     }
+  }
 
-    for (let i = 0; i < qtd; i++) {
-      total++;
-      historico.push(total);
-      som.currentTime = 0;
-      som.play();
-    }
+  function mais() {
+    if (!admin) return;
+
+    total++;
+    historico.push(total);
+    som.currentTime = 0;
+    som.play();
 
     salvar();
     atualizar();
   }
 
+  function menos() {
+    if (!admin) return;
+
+    if (total > 0) {
+      total--;
+      historico.push(total);
+      salvar();
+      atualizar();
+    }
+  }
+
   function resetar() {
-    if (confirm("Tem certeza?")) {
+    if (!admin) return;
+
+    if (confirm("Resetar tudo?")) {
       total = 0;
       historico = [];
       salvar();
